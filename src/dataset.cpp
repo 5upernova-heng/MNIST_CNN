@@ -1,8 +1,8 @@
 #include "dataset.h"
 
 namespace {
-    constexpr int kTrainSize = 42000;
-    constexpr int kTestSize = 28000;
+    constexpr int kTrainSize = 60000;
+    constexpr int kTestSize = 10000;
 
     constexpr int kRows = 28;
     constexpr int kCols = 28;
@@ -17,13 +17,14 @@ namespace {
             std::getline(lineStream, cell, ',');
             result.push_back(stoi(cell));
         }
-        return {torch::from_blob(result.data(), { 1, 28, 28 }, torch::kFloat32),
-                torch::tensor(stoi(cell), torch::kUInt8)};
+        auto opts = torch::TensorOptions().dtype(torch::kInt32);
+        torch::Tensor data = torch::from_blob(result.data(), { 1, 28, 28 }, torch::kInt32).to(torch::kInt64);
+        return {data, torch::tensor(stoi(label), torch::kUInt8)};
     }
 }
 
 std::pair<torch::Tensor, torch::Tensor> read_data(const std::string& root, bool  train) {
-    std::string filename = train ? "train.csv" : "test.csv";
+    std::string filename = train ? "mnist_train.csv" : "mnist_test.csv";
     std::ifstream ifs(root + "/" + filename);
     std::string line;
     auto num_samples = train ? kTrainSize : kTestSize;
